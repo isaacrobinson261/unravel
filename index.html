@@ -518,6 +518,49 @@ cv.onwheel = e => {
   tx = mx - (mx - tx) * nk / k; ty = my - (my - ty) * nk / k; k = nk;
 };
 
+// ---------- autopilot tour (?tour): plays the demo by itself so the presenter can just talk ----------
+// Edit TOUR to retime or reword. Each step: [seconds to hold, caption, action].
+const TOUR = [
+  [4, 'Opening code you didn’t write takes hours. Unravel X-rays it in seconds.', () => {}],
+  [3, 'Everything runs in your browser. Nothing is uploaded.', () => { $('#consent').checked = true; }],
+  [6, 'Example: Blocksmith, a coding school we built. Every function, mapped.', () => $('#demoBtn').click()],
+  [7, 'Hover a function to light up everything it calls.', () => { const n = [...G.nodes].filter(n => n.color).sort((a, b) => b.nb.size - a.nb.size)[0]; sel = n; fly(n.x, n.y, 1.7); }],
+  [6, 'A health grade, with the reasons on hover.', () => { sel = null; fly(0, 0, 0.9); $('.health').animate([{ transform: 'scale(1)' }, { transform: 'scale(1.08)' }, { transform: 'scale(1)' }], { duration: 900, iterations: 2 }); }],
+  [6, 'Dependencies, entry points, and how to run it.', () => tab('overview')],
+  [5, 'Every API route and environment variable it needs.', () => tab('api')],
+  [6, 'Leaked API keys get caught, with the value always hidden.', () => tab('security')],
+  [6, 'The core files everything depends on.', () => tab('hot')],
+  [7, 'Search any file and fly straight to it.', () => typeSearch('index')],
+  [6, 'One click exports a written blueprint with a diagram.', () => { $('#exportBtn').animate([{ boxShadow: '0 0 0 0 #22d3ee' }, { boxShadow: '0 0 0 14px #22d3ee00' }], { duration: 900, iterations: 3 }); toast('Blueprint downloaded.'); }],
+  [8, 'And in Claude Code, type /unravel to get the same blueprint for any project.', () => { sel = null; tab('overview'); fly(0, 0, 0.8); }],
+  [5, 'Unravel. Understand any codebase, fast.', () => {}],
+];
+function fly(x, y, nk, ms = 1200) {
+  const s = { k, tx, ty }, e = { k: nk, tx: -x * nk, ty: -y * nk }, t0 = performance.now();
+  const go = t => { const p = Math.min(1, (t - t0) / ms), q = p < .5 ? 4 * p ** 3 : 1 - (-2 * p + 2) ** 3 / 2; k = s.k + (e.k - s.k) * q; tx = s.tx + (e.tx - s.tx) * q; ty = s.ty + (e.ty - s.ty) * q; if (p < 1) requestAnimationFrame(go); };
+  requestAnimationFrame(go);
+}
+async function typeSearch(q) {
+  const s = $('#search'); s.value = ''; s.focus();
+  for (const ch of q) { s.value += ch; await new Promise(r => setTimeout(r, 140)); }
+  s.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+}
+if (/[?&]tour/.test(location.search)) {
+  const cap = document.createElement('div');
+  cap.style.cssText = 'position:fixed;left:50%;bottom:34px;transform:translateX(-50%);z-index:20;padding:14px 22px;border-radius:14px;background:#08121fee;border:1px solid #22d3ee55;font:600 18px Inter;box-shadow:0 20px 60px -10px #000;transition:opacity .35s;max-width:80vw;text-align:center';
+  document.body.append(cap);
+  (async () => {
+    await new Promise(r => setTimeout(r, 1200));
+    for (const [sec, text, act] of TOUR) {
+      cap.style.opacity = 0; await new Promise(r => setTimeout(r, 300));
+      cap.textContent = text; cap.style.opacity = 1;
+      try { await act(); } catch (e) { console.warn(e); }
+      await new Promise(r => setTimeout(r, sec * 1000));
+    }
+    cap.style.opacity = 0;
+  })();
+}
+
 // ---------- blueprint export ----------
 $('#exportBtn').onclick = () => {
   const mid = p => 'n' + [...P.byPath.keys()].indexOf(p);
