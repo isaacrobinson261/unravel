@@ -521,19 +521,17 @@ cv.onwheel = e => {
 // ---------- autopilot tour (?tour): plays the demo by itself so the presenter can just talk ----------
 // Edit TOUR to retime or reword. Each step: [seconds to hold, caption, action].
 const TOUR = [
-  [4, 'Opening code you didn’t write takes hours. Unravel X-rays it in seconds.', () => {}],
-  [3, 'Everything runs in your browser. Nothing is uploaded.', () => { $('#consent').checked = true; }],
-  [6, 'Example: Blocksmith, a coding school we built. Every function, mapped.', () => $('#demoBtn').click()],
-  [7, 'Hover a function to light up everything it calls.', () => { const n = [...G.nodes].filter(n => n.color).sort((a, b) => b.nb.size - a.nb.size)[0]; sel = n; fly(n.x, n.y, 1.7); }],
-  [6, 'A health grade, with the reasons on hover.', () => { sel = null; fly(0, 0, 0.9); $('.health').animate([{ transform: 'scale(1)' }, { transform: 'scale(1.08)' }, { transform: 'scale(1)' }], { duration: 900, iterations: 2 }); }],
-  [6, 'Dependencies, entry points, and how to run it.', () => tab('overview')],
-  [5, 'Every API route and environment variable it needs.', () => tab('api')],
-  [6, 'Leaked API keys get caught, with the value always hidden.', () => tab('security')],
-  [6, 'The core files everything depends on.', () => tab('hot')],
-  [7, 'Search any file and fly straight to it.', () => typeSearch('index')],
-  [6, 'One click exports a written blueprint with a diagram.', () => { $('#exportBtn').animate([{ boxShadow: '0 0 0 0 #22d3ee' }, { boxShadow: '0 0 0 14px #22d3ee00' }], { duration: 900, iterations: 3 }); toast('Blueprint downloaded.'); }],
-  [8, 'And in Claude Code, type /unravel to get the same blueprint for any project.', () => { sel = null; tab('overview'); fly(0, 0, 0.8); }],
-  [5, 'Unravel. Understand any codebase, fast.', () => {}],
+  [3, 'Unravel: X-ray any codebase. Nothing leaves your browser.', () => { $('#consent').checked = true; }],
+  [5, 'Live example: Blocksmith, a coding school I built.', () => $('#demoBtn').click()],
+  [6, 'Every function, and every call between them.', () => { const n = [...G.nodes].filter(n => n.color).sort((a, b) => b.nb.size - a.nb.size)[0]; sel = n; fly(n.x, n.y, 1.7); }],
+  [5, 'Instant health grade, with the reasons on hover.', () => { sel = null; fly(0, 0, 0.9); $('.health').animate([{ transform: 'scale(1)' }, { transform: 'scale(1.08)' }, { transform: 'scale(1)' }], { duration: 900, iterations: 2 }); }],
+  [4, 'Entry points, dependencies, how to run it.', () => tab('overview')],
+  [4, 'API routes and environment variables.', () => tab('api')],
+  [5, 'Leaked API keys caught, values always hidden.', () => tab('security')],
+  [4, 'The core files to read first.', () => tab('hot')],
+  [6, 'Search any file and fly straight to it.', () => typeSearch('index')],
+  [4, 'One click exports a written blueprint.', () => { $('#exportBtn').animate([{ boxShadow: '0 0 0 0 #22d3ee' }, { boxShadow: '0 0 0 14px #22d3ee00' }], { duration: 900, iterations: 3 }); toast('Blueprint downloaded.'); }],
+  [2, 'Now a real project, live.', () => { sel = null; tab('overview'); fly(0, 0, 0.8); }],
 ];
 function fly(x, y, nk, ms = 1200) {
   const s = { k, tx, ty }, e = { k: nk, tx: -x * nk, ty: -y * nk }, t0 = performance.now();
