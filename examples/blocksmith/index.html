@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blocksmith: blocks to code to AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070914;--panel:rgba(18,22,44,.62);--line:rgba(255,255,255,.08);--txt:#e7e9ff;--mut:#8b91b8;--a:#7c5cff;--b:#22d3ee;--c:#f472b6;--ok:#34d399;--warn:#fbbf24;--bad:#f87171;--r:16px}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:14px/1.5 Inter,system-ui,sans-serif;color:var(--txt);background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+body::before{content:'';position:fixed;inset:-20%;z-index:-1;background:radial-gradient(40% 40% at 15% 10%,#7c5cff38,transparent 70%),radial-gradient(35% 35% at 85% 0%,#22d3ee26,transparent 70%),radial-gradient(40% 40% at 60% 100%,#f472b61f,transparent 70%);animation:drift 18s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate(3%,2%) scale(1.06)}}
+@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.98)}}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a3060;border-radius:9px;border:2px solid transparent;background-clip:padding-box}
+.muted{color:var(--mut)}
+/* header */
+.top{display:flex;align-items:center;gap:20px;padding:14px 20px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand b{font-size:17px;font-weight:800;letter-spacing:-.02em;display:block}
+.brand small{color:var(--mut);font-size:12px}
+.mark{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-weight:800;font-size:18px;background:linear-gradient(135deg,var(--a),var(--b));box-shadow:0 8px 30px -6px #7c5cffaa,inset 0 1px 0 #ffffff55}
+.tabs{display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px}
+.tabs button{background:none;border:0;color:var(--mut);font:600 13px Inter;padding:8px 16px;border-radius:9px;cursor:pointer;transition:.2s}
+.tabs button:hover{color:var(--txt)}
+.tabs button.on{color:#fff;background:linear-gradient(135deg,#7c5cffcc,#5b8cffcc);box-shadow:0 4px 18px -4px #7c5cff99}
+.stepper{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mut);margin-left:auto}
+.stepper span{padding:4px 11px;border-radius:99px;border:1px solid var(--line);font-weight:600;transition:.3s}
+.stepper span.past{color:var(--ok);border-color:#34d39955}
+.stepper span.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--a),var(--b))}
+.stepper i{width:18px;height:2px;background:var(--line);border-radius:2px}
+.right{display:flex;align-items:center;gap:10px}
+.xp{font-weight:800;padding:7px 12px;border-radius:10px;background:linear-gradient(135deg,#facc1522,#f472b622);border:1px solid #facc1544;color:#fde68a;white-space:nowrap}
+select,input,textarea{background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:9px 12px;font:inherit;outline:none;transition:.15s;width:100%}
+select{width:auto;cursor:pointer}
+select option{background:#11152a}
+textarea{resize:vertical}
+input:focus,textarea:focus,select:focus{border-color:#7c5cffaa;box-shadow:0 0 0 3px #7c5cff26}
+.btn{border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--txt);padding:8px 14px;border-radius:10px;font:600 13px Inter;cursor:pointer;transition:.15s;white-space:nowrap}
+.btn:hover{background:rgba(255,255,255,.1);transform:translateY(-1px)}
+.btn:active{transform:none}
+.btn.primary{background:linear-gradient(135deg,var(--a),var(--b));border-color:transparent;color:#fff;box-shadow:0 6px 24px -6px #7c5cffaa}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent}
+.btn.tiny{padding:5px 10px;font-size:12px}
+/* mission */
+.mission{flex-direction:row!important;flex-wrap:wrap;align-items:center;gap:14px;margin:0 16px;padding:12px 16px;overflow:visible!important}
+.mi-badge{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:17px;background:linear-gradient(135deg,#7c5cff33,#22d3ee33);border:1px solid #7c5cff55}
+.mi-text{flex:1;min-width:260px;display:flex;flex-direction:column}
+.mi-text small{color:var(--b);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.mi-text b{font-size:16px}
+.mi-text span{color:var(--mut)}
+.mi-actions{display:flex;gap:8px}
+.hint{flex-basis:100%;padding:12px 14px;border-radius:12px;background:linear-gradient(135deg,#7c5cff1f,#22d3ee14);border:1px solid #7c5cff44;white-space:pre-wrap;animation:pop .3s}
+.hint::before{content:'AI Coach  ';font-weight:800;color:var(--b)}
+/* layout */
+main{flex:1;min-height:0;padding:12px 16px 16px}
+.view{display:none;height:100%;gap:12px;animation:pop .35s}
+.view.on{display:grid}
+#view-learn{grid-template-columns:250px 1fr 400px}
+#view-code{grid-template-columns:1fr 360px}
+#view-agent{grid-template-columns:340px 1fr 380px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);min-height:0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px -30px #000;position:relative}
+.side{display:flex;flex-direction:column;gap:12px;min-height:0}
+.grow{flex:1}
+.ph{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--line);min-height:48px}
+.ph>:last-child:not(:first-child){margin-left:auto}
+.mon{flex:1;min-height:0}
+.console{height:230px;flex:none}
+.console.grow{flex:1;height:auto}
+.out{flex:1;overflow:auto;padding:10px 14px;font:13px/1.7 'JetBrains Mono',monospace}
+.out div{animation:pop .2s}
+.out div::before{content:'\203A  ';color:var(--a);font-weight:700}
+.out .err{color:var(--bad)}.out .sys{color:var(--mut);font-style:italic}
+.out .err::before{content:'!  ';color:var(--bad)}
+/* lessons */
+.lessons ol{list-style:none;margin:0;padding:8px;overflow:auto}
+.ls{display:flex;gap:12px;align-items:center;width:100%;padding:10px;border-radius:12px;background:none;border:1px solid transparent;color:inherit;text-align:left;cursor:pointer;font:inherit;transition:.15s}
+.ls:hover{background:rgba(255,255,255,.04)}
+.ls.on{background:rgba(124,92,255,.14);border-color:#7c5cff55}
+.ls b{display:block;font-size:13px}.ls small{color:var(--mut);font-size:11px}
+.num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.06);font-weight:700;font-size:12px;flex:none;transition:.3s}
+.ls.done .num{background:linear-gradient(135deg,var(--ok),var(--b));color:#04131a}
+.progress{margin:auto 14px 14px;padding-top:10px}
+.bar{height:8px;border-radius:9px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--a),var(--b));border-radius:9px;transition:width .6s cubic-bezier(.2,.9,.3,1.2)}
+/* blockly */
+#blockly{height:100%}
+.blocklyToolboxDiv,.blocklyToolbox{background:#0d1126!important;padding-top:8px;border-right:1px solid var(--line)}
+.blocklyTreeRow,.blocklyToolboxCategory{border-radius:8px;margin:2px 6px!important;height:34px!important;line-height:34px!important}
+.blocklyTreeLabel,.blocklyToolboxCategoryLabel{font:600 13px Inter!important;color:#c9d1ff!important}
+.blocklyMainBackground{stroke:none!important}
+.blocklyFlyoutBackground{fill:#141936!important;fill-opacity:.97!important}
+.blocklyWidgetDiv .blocklyMenu,.blocklyDropDownDiv{background:#1a1f40!important;border-color:#2a3060!important}
+.blocklyMenuItemContent,.blocklyMenuItem{color:#e7e9ff!important}
+/* peek */
+.peekCover{display:none;position:absolute;inset:48px 0 0;place-items:center;text-align:center;z-index:2}
+.peek .mon{filter:blur(7px);opacity:.5;pointer-events:none}
+.peek .peekCover{display:grid}
+.peekCover p{color:var(--mut);margin:8px 0 0;font-size:12px}
+/* cheat */
+.cheat{padding:6px 14px 14px}
+.cheat div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.cheat span{color:var(--mut)}.cheat code{font:12.5px 'JetBrains Mono';color:#a5f3fc}
+/* agent */
+.body{overflow:auto;padding:14px;display:flex;flex-direction:column;gap:13px}
+label,.lbl{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:12px;color:var(--mut)}
+label small{font-weight:400}
+.templates{display:flex;flex-wrap:wrap;gap:6px}
+.tpl{background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:6px 10px;font:600 12px Inter;cursor:pointer;transition:.15s}
+.tpl:hover{border-color:#22d3ee88;color:#a5f3fc}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip-t{padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:none;color:var(--mut);cursor:pointer;font:600 12px Inter;transition:.15s}
+.chip-t.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--a),var(--c))}
+.rules{display:flex;flex-direction:column;gap:6px}
+.rule{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:9px;background:rgba(124,92,255,.1);border:1px solid #7c5cff33;color:var(--txt);font-weight:500;animation:pop .2s}
+.rule .x{margin-left:auto;background:none;border:0;color:var(--mut);cursor:pointer;font-size:16px}
+.row{display:flex;gap:8px;align-items:center}
+.end{justify-content:flex-end}
+.agentHead small{display:block;color:var(--mut);font-size:12px}
+.avatar{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-weight:800;background:linear-gradient(135deg,var(--c),var(--a));box-shadow:0 6px 20px -6px #f472b6aa}
+.msgs{flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:80%;padding:10px 14px;border-radius:16px;white-space:pre-wrap;animation:pop .25s;line-height:1.55}
+.msg.user{align-self:flex-end;background:linear-gradient(135deg,var(--a),#5b8cff);border-bottom-right-radius:4px}
+.msg.ai{align-self:flex-start;background:rgba(255,255,255,.06);border:1px solid var(--line);border-bottom-left-radius:4px}
+.typing{display:flex;gap:5px}.typing i{width:7px;height:7px;border-radius:50%;background:var(--mut);animation:blink 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes blink{50%{opacity:.25;transform:translateY(-3px)}}
+.empty{margin:auto;text-align:center;color:var(--mut);max-width:340px}
+.composer{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
+.score{flex-direction:row!important;flex-wrap:wrap;gap:14px;padding:16px;align-items:center}
+.ring{--p:0;width:80px;height:80px;border-radius:50%;background:conic-gradient(var(--b) calc(var(--p)*1%),rgba(255,255,255,.07) 0);display:grid;place-items:center;position:relative;transition:background .4s}
+.ring::before{content:'';position:absolute;inset:7px;border-radius:50%;background:#10142b}
+.ring span{position:relative;font-size:22px;font-weight:800}
+.score b{font-size:16px}.score p{margin:0;font-size:12px}
+#checks{list-style:none;margin:0;padding:0;flex-basis:100%;display:grid;gap:5px}
+#checks li{font-weight:600;font-size:12.5px}
+#checks li::before{content:'\25CB';margin-right:8px;color:var(--mut)}
+#checks li.ok::before{content:'\2713';color:var(--ok)}
+#checks li small{display:block;color:var(--mut);font-weight:400;margin-left:20px}
+#checks li.ok small{display:none}
+.seg{display:flex;gap:2px;padding:3px;border-radius:9px;background:rgba(255,255,255,.05)}
+.seg button{background:none;border:0;color:var(--mut);font:600 12px Inter;padding:4px 10px;border-radius:7px;cursor:pointer}
+.seg button.on{background:rgba(255,255,255,.1);color:#fff}
+/* dialog + toast */
+dialog{background:#11152a;color:var(--txt);border:1px solid var(--line);border-radius:18px;padding:24px;width:440px;box-shadow:0 30px 80px -20px #000}
+dialog::backdrop{background:#0009;backdrop-filter:blur(4px)}
+dialog h3{margin:0 0 6px;font-size:18px}
+dialog form{display:flex;flex-direction:column;gap:14px}
+dialog select{width:100%}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;padding:12px 18px;border-radius:12px;background:#1a1f40;border:1px solid #7c5cff66;font-weight:600;transition:.3s;pointer-events:none;z-index:9;box-shadow:0 20px 50px -10px #000}
+#toast.on{opacity:1;transform:translateX(-50%)}
+#toast.warn{border-color:#fbbf2488}
+@media (max-width:1500px){.stepper{display:none}.right{margin-left:auto}#view-learn{grid-template-columns:210px 1fr 330px}#view-agent{grid-template-columns:290px 1fr 320px}#view-code{grid-template-columns:1fr 300px}.brand small{display:none}}
+@media (max-width:1150px){#view-learn{grid-template-columns:1fr 300px}#view-learn .lessons{display:none}#view-agent{grid-template-columns:1fr 1fr}#view-agent>.side{display:none}.mi-actions .ghost{display:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><div class="mark">B</div><div><b>Blocksmith</b><small>blocks &rarr; code &rarr; AI</small></div></div>
+  <nav class="tabs" id="tabs">
+    <button data-view="learn" class="on">Learn</button><button data-view="code">Code</button><button data-view="agent">Agent Lab</button>
+  </nav>
+  <div class="stepper" id="stepper"><span data-s="blocks">Blocks</span><i></i><span data-s="hybrid">Hybrid</span><i></i><span data-s="code">Code</span><i></i><span data-s="ai">AI</span></div>
+  <div class="right">
+    <div class="xp"><span id="xp">0</span> XP</div>
+    <select id="lang" title="Language"><option value="javascript">JavaScript</option><option value="python">Python</option><option value="lua">Lua</option><option value="php">PHP</option><option value="dart">Dart</option></select>
+    <button class="btn" id="settingsBtn">AI key</button>
+  </div>
+</header>
+
+<section class="mission panel">
+  <div class="mi-badge" id="lNum">1</div>
+  <div class="mi-text"><small id="lStage"></small><b id="lTitle"></b><span id="lGoal"></span></div>
+  <div class="mi-actions"><button class="btn ghost" id="hintBtn">Ask AI for a hint</button><button class="btn primary" id="checkBtn">Check my work</button></div>
+  <div class="hint" id="hintBox" hidden></div>
+</section>
+
+<main>
+  <section id="view-learn" class="view on">
+    <aside class="panel lessons">
+      <div class="ph"><b>Your path</b></div>
+      <ol id="lessonList"></ol>
+      <div class="progress"><small class="muted" id="progText"></small><div class="bar"><i id="progBar"></i></div></div>
+    </aside>
+    <div class="panel"><div id="blockly"></div></div>
+    <aside class="side">
+      <div class="panel grow" id="previewPanel">
+        <div class="ph"><b>Your blocks as <span class="langName"></span></b><button class="btn tiny" id="toCode">Open in editor</button></div>
+        <div id="preview" class="mon"></div>
+        <div class="peekCover"><div><button class="btn primary" id="peekBtn">Peek at the real code</button><p>Every block is real code underneath.</p></div></div>
+      </div>
+      <div class="panel console">
+        <div class="ph"><b>Console</b><button class="btn tiny primary" id="runBlocks">Run blocks</button></div>
+        <div class="out" id="out1"></div>
+      </div>
+    </aside>
+  </section>
+
+  <section id="view-code" class="view">
+    <div class="panel">
+      <div class="ph"><b>Editor</b><span class="muted">real <span class="langName"></span></span><div class="row" style="margin-left:auto"><button class="btn tiny ghost" id="fromBlocks">Bring my blocks</button><button class="btn primary" id="runCode">Run &nbsp;Ctrl+Enter</button></div></div>
+      <div id="editor" class="mon"></div>
+    </div>
+    <aside class="side">
+      <div class="panel console grow"><div class="ph"><b>Console</b></div><div class="out" id="out2"></div></div>
+      <div class="panel"><div class="ph"><b>Cheat sheet: <span class="langName"></span></b></div><div class="cheat" id="cheat"></div></div>
+    </aside>
+  </section>
+
+  <section id="view-agent" class="view">
+    <aside class="panel">
+      <div class="ph"><b>Build your agent</b></div>
+      <div class="body">
+        <div class="lbl">Start from a template<div class="templates" id="templates"></div></div>
+        <label>Name<input id="aName" placeholder="e.g. Sage"></label>
+        <label>Role <small>Who is it, and who does it help?</small><textarea id="aRole" rows="2"></textarea></label>
+        <div class="lbl">Personality<div class="chips" id="aTraits"></div></div>
+        <div class="lbl">Rules<div class="rules" id="aRules"></div>
+          <form class="row" id="ruleForm"><input id="ruleIn" placeholder="e.g. Never give the full answer"><button class="btn tiny">Add</button></form></div>
+        <label>Context <small>What should it know about you?</small><textarea id="aKnow" rows="2"></textarea></label>
+        <label>Answer format<input id="aFormat" placeholder="e.g. 3 bullet points, then a question"></label>
+        <label>Example of a great answer<textarea id="aEx" rows="2"></textarea></label>
+      </div>
+    </aside>
+    <div class="panel">
+      <div class="ph agentHead"><div class="avatar" id="aAvatar">A</div><div><b id="aTitle">Agent</b><small id="aMode"></small></div><button class="btn tiny ghost" id="resetChat">New chat</button></div>
+      <div class="msgs" id="msgs"></div>
+      <form class="composer" id="composer"><input id="msgIn" placeholder="Talk to your agent..." autocomplete="off"><button class="btn primary">Send</button></form>
+    </div>
+    <aside class="side">
+      <div class="panel score"><div class="ring" id="ring"><span id="scoreNum">0</span></div><div><b id="scoreLabel"></b><p class="muted">Prompt strength. This is how you get good answers from any AI.</p></div><ul id="checks"></ul></div>
+      <div class="panel grow"><div class="ph"><b>Your agent as code</b><div class="seg" id="codeSeg"><button data-k="python" class="on">Python</button><button data-k="javascript">JavaScript</button></div></div><div id="agentCode" class="mon"></div></div>
+    </aside>
+  </section>
+</main>
+
+<dialog id="settings"><form method="dialog">
+  <h3>Connect a real AI</h3>
+  <p class="muted" style="margin:0">Blocksmith runs in demo mode with no key. Paste an Anthropic API key to power live hints and your agents. The key stays in this browser's local storage and is only sent to Anthropic.</p>
+  <label>API key<input id="keyIn" type="password" placeholder="sk-ant-..."></label>
+  <label>Model<select id="modelIn"><option value="claude-sonnet-5-5">Claude Sonnet 5.5 (balanced)</option><option value="claude-opus-5-5">Claude Opus 5.5 (smartest)</option><option value="claude-haiku-5-5">Claude Haiku 5.5 (fastest)</option></select></label>
+  <div class="row end"><button class="btn ghost" value="cancel">Cancel</button><button class="btn primary" value="ok">Save</button></div>
+</form></dialog>
+<div id="toast"></div>
+
+<!-- Blockly must load before Monaco's AMD loader, or it registers as a module instead of a global -->
+<script src="https://cdn.jsdelivr.net/npm/blockly@11/blockly_compressed.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/blockly@11/blocks_compressed.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/blockly@11/javascript_compressed.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/blockly@11/python_compressed.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/blockly@11/lua_compressed.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/blockly@11/php_compressed.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/blockly@11/dart_compressed.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/blockly@11/msg/en.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js"></script>
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const el = (t, c, txt) => { const e = document.createElement(t); if (c) e.className = c; if (txt != null) e.textContent = txt; return e; };
+const store = {
+  get: (k, d) => { try { return JSON.parse(localStorage.getItem('bs.' + k)) ?? d; } catch { return d; } },
+  set: (k, v) => localStorage.setItem('bs.' + k, JSON.stringify(v)),
+};
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const LANGS = { javascript: 'JavaScript', python: 'Python', lua: 'Lua', php: 'PHP', dart: 'Dart' };
+const gen = l => window[l]?.[l + 'Generator'] || Blockly[LANGS[l]];
+const COMMENT = { javascript: '//', python: '#', lua: '--', php: '//', dart: '//' };
+const STAGES = { blocks: 'Blocks', hybrid: 'Blocks + code', code: 'Real code', ai: 'AI agents' };
+
+// ---------- lessons ----------
+const LESSONS = [
+  { id: 'hello', stage: 'blocks', title: 'Say hello', goal: 'Drag a "print" block from Text and make it say Hello, world! Then press Run blocks.', hint: 'Open the Text drawer. The first block prints whatever you snap into it.', test: o => o.some(l => /hello,? world/i.test(l)) },
+  { id: 'vars', stage: 'blocks', title: 'Remember things', goal: 'Make a variable called name, set it to your name, then print "Hi " joined with name.', hint: 'Variables drawer: Create variable. Then use "create text with" from Text to glue "Hi " and name together.', test: o => o.some(l => /^hi\s*\S/i.test(l)) },
+  { id: 'math', stage: 'blocks', title: 'Computer math', goal: 'Print the answer to 7 x 6 using a math block.', hint: 'The Math drawer has a block with + in it. Click the + to change it.', test: o => o.includes('42') },
+  { id: 'loop', stage: 'hybrid', title: 'Repeat yourself', goal: 'Print "Code!" exactly 5 times with a repeat block. Watch the real code appear on the right as you build.', hint: 'Loops drawer: "repeat 5 times". Put a print block inside its mouth.', test: o => o.filter(l => l === 'Code!').length === 5 },
+  { id: 'if', stage: 'hybrid', title: 'Make decisions', goal: 'Set score to 80. If score > 50 print "Pass", otherwise print "Try again".', hint: 'Use the "if" block and click its gear to add an else. The Logic "=" block can be switched to >.', test: o => o.includes('Pass') },
+  { id: 'sum', stage: 'hybrid', title: 'Count it up', goal: 'Use "count with i from 1 to 10" to add 1 through 10 into total, then print total.', hint: 'Set total to 0 before the loop. Inside the loop use "change total by i".', test: o => o.includes('55') },
+  { id: 'real', stage: 'code', title: 'Graduate to real code', goal: 'No more blocks. Write a function in JavaScript or Python that adds 1 to 10 and prints the result (55).', hint: 'Click "Bring my blocks" to see your last program as code, then rewrite it as a function.', test: o => o.includes('55') },
+  { id: 'agent', stage: 'ai', title: 'Build your own AI agent', goal: 'Design an agent with a prompt strength of 80 or more, then have a conversation with it.', hint: 'Give it a clear role, at least two rules, a format, and one example answer.', test: () => agentScore() >= 80 && chat.some(m => m.role === 'assistant') },
+];
+let cur = Math.min(store.get('cur', 0), LESSONS.length - 1);
+let lang = store.get('lang', 'javascript');
+const done = new Set(store.get('done', []));
+
+// ---------- Blockly ----------
+const sh = (type, fields) => ({ shadow: { type, fields } });
+const num = n => sh('math_number', { NUM: n });
+const b = (type, inputs) => ({ kind: 'block', type, ...(inputs && { inputs }) });
+const cat = (name, colour, contents) => ({ kind: 'category', name, colour: String(colour), contents });
+const toolbox = { kind: 'categoryToolbox', contents: [
+  cat('Text', 160, [b('text_print', { TEXT: sh('text', { TEXT: 'Hello, world!' }) }), b('text'), b('text_join'), b('text_length', { VALUE: sh('text', { TEXT: 'abc' }) })]),
+  cat('Math', 230, [b('math_number'), b('math_arithmetic', { A: num(1), B: num(1) }), b('math_random_int', { FROM: num(1), TO: num(100) }), b('math_modulo', { DIVIDEND: num(10), DIVISOR: num(3) })]),
+  cat('Logic', 210, [b('controls_if'), b('logic_compare'), b('logic_operation'), b('logic_negate'), b('logic_boolean')]),
+  cat('Loops', 120, [b('controls_repeat_ext', { TIMES: num(5) }), b('controls_for', { FROM: num(1), TO: num(10), BY: num(1) }), b('controls_whileUntil'), b('controls_forEach')]),
+  cat('Lists', 260, [b('lists_create_with'), b('lists_length'), b('lists_getIndex')]),
+  { kind: 'sep' },
+  { kind: 'category', name: 'Variables', colour: '330', custom: 'VARIABLE' },
+  { kind: 'category', name: 'Functions', colour: '290', custom: 'PROCEDURE' },
+] };
+const theme = Blockly.Theme.defineTheme('bs', {
+  base: Blockly.Themes.Classic,
+  componentStyles: { workspaceBackgroundColour: '#0b0e1f', toolboxBackgroundColour: '#0d1126', toolboxForegroundColour: '#c9d1ff', flyoutBackgroundColour: '#141936', flyoutForegroundColour: '#c9d1ff', flyoutOpacity: .97, scrollbarColour: '#2a3060', scrollbarOpacity: .8, insertionMarkerColour: '#ffffff', insertionMarkerOpacity: .3, cursorColour: '#d0d0d0' },
+  fontStyle: { family: 'Inter, sans-serif', weight: '600', size: 12 },
+});
+const ws = Blockly.inject('blockly', {
+  toolbox, theme, renderer: 'zelos', trashcan: true,
+  grid: { spacing: 28, length: 2, colour: '#1c2244', snap: true },
+  zoom: { controls: true, wheel: true, startScale: .8 },
+  move: { scrollbars: true, drag: true, wheel: false },
+});
+ws.addChangeListener(e => {
+  if (e.isUiEvent) return;
+  updatePreview();
+  if (['blocks', 'hybrid'].includes(LESSONS[cur].stage)) store.set('ws.' + LESSONS[cur].id, Blockly.serialization.workspaces.save(ws));
+});
+const blocksCode = (l = lang) => gen(l).workspaceToCode(ws);
+function blocksJS() { // loop trap only for running, never in the preview
+  const g = gen('javascript');
+  g.INFINITE_LOOP_TRAP = 'if (--window.LoopTrap <= 0) throw new Error("Loop ran too long. Is it running forever?");\n';
+  const c = g.workspaceToCode(ws);
+  g.INFINITE_LOOP_TRAP = null;
+  return c;
+}
+
+// ---------- running code ----------
+function runJS(code) {
+  const out = [], fmt = v => typeof v === 'object' ? JSON.stringify(v) : String(v);
+  const log = (...a) => out.push(a.map(fmt).join(' '));
+  const win = { alert: log, prompt: m => prompt(m), LoopTrap: 10000 };
+  try { new Function('window', 'console', code)(win, { log, info: log, warn: log, error: log }); }
+  catch (e) { out.push({ err: e.message || String(e) }); }
+  return out;
+}
+let py;
+async function runPy(code) {
+  if (!py) {
+    toast('Loading Python. First run takes a few seconds...');
+    const d = window.define; window.define = undefined; // keep pyodide off Monaco's AMD loader
+    await new Promise((res, rej) => { const s = el('script'); s.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js'; s.onload = res; s.onerror = rej; document.head.append(s); });
+    window.define = d;
+    py = await loadPyodide();
+  }
+  const out = [];
+  py.setStdout({ batched: s => out.push(s) });
+  py.setStderr({ batched: s => out.push({ err: s }) });
+  // ponytail: Python runs on the main thread, an infinite loop freezes the tab; move to a Worker if that bites
+  try { await py.runPythonAsync(code); } catch (e) { out.push({ err: String(e.message).trim().split('\n').pop() }); }
+  return out;
+}
+async function runCode(code, l) {
+  if (l === 'javascript') return runJS(code);
+  if (l === 'python') return runPy(code);
+  return [{ sys: `${LANGS[l]} can't run in the browser yet. Read it and compare it to JavaScript, then switch to JavaScript or Python to run.` }];
+}
+function show(box, lines) {
+  box.replaceChildren(...(lines.length ? lines : [{ sys: '(no output)' }]).map(l => {
+    if (typeof l === 'string') return el('div', '', l);
+    return el('div', l.err ? 'err' : 'sys', l.err || l.sys);
+  }));
+}
+async function runBlocks() {
+  const py_ = lang === 'python';
+  const out = await runCode(py_ ? blocksCode('python') : blocksJS(), py_ ? 'python' : 'javascript');
+  if (!['javascript', 'python'].includes(lang)) out.unshift({ sys: `Ran the JavaScript version. ${LANGS[lang]} is shown for reading.` });
+  show($('#out1'), out);
+  return out;
+}
+
+// ---------- UI: lessons, stepper, views ----------
+function renderLessons() {
+  $('#lessonList').replaceChildren(...LESSONS.map((L, i) => {
+    const btn = el('button', 'ls' + (i === cur ? ' on' : '') + (done.has(L.id) ? ' done' : ''));
+    btn.append(el('span', 'num', done.has(L.id) ? '✓' : i + 1));
+    const t = el('span'); t.append(el('b', '', L.title), el('small', '', STAGES[L.stage])); btn.append(t);
+    btn.onclick = () => loadLesson(i);
+    const li = el('li'); li.append(btn); return li;
+  }));
+  $('#xp').textContent = done.size * 100;
+  $('#progText').textContent = `${done.size} of ${LESSONS.length} complete`;
+  $('#progBar').style.width = (done.size / LESSONS.length * 100) + '%';
+  const order = Object.keys(STAGES), at = order.indexOf(LESSONS[cur].stage);
+  $$('#stepper span').forEach(s => { const i = order.indexOf(s.dataset.s); s.className = i === at ? 'on' : i < at ? 'past' : ''; });
+}
+function loadLesson(i) {
+  cur = i; store.set('cur', i);
+  const L = LESSONS[i];
+  $('#lNum').textContent = i + 1;
+  $('#lTitle').textContent = L.title;
+  $('#lGoal').textContent = L.goal;
+  $('#lStage').textContent = `Lesson ${i + 1} of ${LESSONS.length} · ${STAGES[L.stage]}`;
+  $('#hintBox').hidden = true;
+  if (['blocks', 'hybrid'].includes(L.stage)) { // code/ai lessons keep the last blocks around for "Bring my blocks"
+    ws.clear();
+    const s = store.get('ws.' + L.id);
+    if (s) Blockly.serialization.workspaces.load(s, ws);
+  }
+  $('#previewPanel').classList.toggle('peek', L.stage === 'blocks');
+  renderLessons(); updatePreview();
+  view(L.stage === 'code' ? 'code' : L.stage === 'ai' ? 'agent' : 'learn');
+}
+function view(v) {
+  $$('#tabs button').forEach(x => x.classList.toggle('on', x.dataset.view === v));
+  $$('.view').forEach(s => s.classList.toggle('on', s.id === 'view-' + v));
+  if (v === 'learn') requestAnimationFrame(() => Blockly.svgResize(ws));
+}
+$$('#tabs button').forEach(x => x.onclick = () => view(x.dataset.view));
+let toastT;
+function toast(msg, kind = '') {
+  const t = $('#toast'); t.textContent = msg; t.className = 'on ' + kind;
+  clearTimeout(toastT); toastT = setTimeout(() => t.className = kind, 2800);
+}
+const party = () => window.confetti?.({ particleCount: 160, spread: 90, origin: { y: .35 }, colors: ['#7c5cff', '#22d3ee', '#f472b6', '#facc15'] });
+
+async function check() {
+  const L = LESSONS[cur];
+  let out = [];
+  if (L.stage === 'code') {
+    view('code');
+    const l = lang === 'python' ? 'python' : 'javascript';
+    if (!['javascript', 'python'].includes(lang)) { toast('Switch the language to JavaScript or Python for this one.', 'warn'); return; }
+    out = await runCode(editor.getValue(), l); show($('#out2'), out);
+  } else if (L.stage !== 'ai') { view('learn'); out = await runBlocks(); }
+  const lines = out.filter(x => typeof x === 'string').map(s => s.trim());
+  if (!L.test(lines)) { toast(L.stage === 'ai' ? `Prompt strength ${agentScore()}/100. Reach 80 and chat once.` : 'Not quite yet. Re-read the goal or ask the AI coach.', 'warn'); return; }
+  const fresh = !done.has(L.id);
+  done.add(L.id); store.set('done', [...done]);
+  party(); renderLessons();
+  if (cur === LESSONS.length - 1) { toast('You went from blocks to building AI. Legendary.'); setTimeout(party, 500); return; }
+  toast(fresh ? 'Lesson complete! +100 XP' : 'Still works. Nice.');
+  await sleep(1300); loadLesson(cur + 1);
+}
+$('#checkBtn').onclick = check;
+$('#runBlocks').onclick = runBlocks;
+$('#peekBtn').onclick = () => $('#previewPanel').classList.remove('peek');
+
+// ---------- AI ----------
+const key = () => store.get('key', '');
+async function claude(system, messages) {
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-api-key': key(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: store.get('model', 'claude-sonnet-5-5'), max_tokens: 1024, system, messages: messages.map(({ role, content }) => ({ role, content })) }),
+  });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error?.message || r.statusText);
+  return j.content.filter(x => x.type === 'text').map(x => x.text).join('\n');
+}
+$('#hintBtn').onclick = async () => {
+  const L = LESSONS[cur], box = $('#hintBox');
+  box.hidden = false;
+  if (!key()) { box.textContent = L.hint + '\n(Demo hint. Add an AI key for live, personal hints.)'; return; }
+  box.textContent = 'Thinking...';
+  const code = L.stage === 'code' ? editor.getValue() : L.stage === 'ai' ? systemPrompt(agent) : blocksCode();
+  try {
+    box.textContent = await claude(
+      'You are a warm coding tutor for a total beginner. Give exactly ONE short hint (max 2 sentences) that nudges them to the next step. Never give the full solution or write the code for them.',
+      [{ role: 'user', content: `Goal: ${L.goal}\nWhat I have so far:\n${code || '(nothing yet)'}\nWhat should I try next?` }]);
+  } catch (e) { box.textContent = `AI error: ${e.message}\n${L.hint}`; }
+};
+
+// ---------- Monaco ----------
+const STARTER = {
+  javascript: '// Real JavaScript. Press Run (or Ctrl+Enter).\nconsole.log("Hello from real code!");\n\n// Your mission: write a function sumTo(n) that adds 1..n,\n// then print sumTo(10).\n',
+  python: '# Real Python. Press Run (or Ctrl+Enter).\nprint("Hello from real code!")\n\n# Your mission: write a function sum_to(n) that adds 1..n,\n# then print sum_to(10).\n',
+  lua: '-- Real Lua (read-only in the browser for now)\nprint("Hello from real code!")\n',
+  php: '<?php\n// Real PHP (read-only in the browser for now)\necho "Hello from real code!";\n',
+  dart: '// Real Dart (read-only in the browser for now)\nvoid main() {\n  print("Hello from real code!");\n}\n',
+};
+const CHEAT = {
+  javascript: ['console.log("hi")', 'let x = 5', 'for (let i = 0; i < 3; i++) {}', 'if (x > 3) { } else { }', 'function add(a, b) { return a + b }'],
+  python: ['print("hi")', 'x = 5', 'for i in range(3):', 'if x > 3:  ...  else:', 'def add(a, b): return a + b'],
+  lua: ['print("hi")', 'local x = 5', 'for i = 1, 3 do ... end', 'if x > 3 then ... else ... end', 'function add(a, b) return a + b end'],
+  php: ['echo "hi";', '$x = 5;', 'for ($i = 0; $i < 3; $i++) {}', 'if ($x > 3) { } else { }', 'function add($a, $b) { return $a + $b; }'],
+  dart: ["print('hi');", 'var x = 5;', 'for (var i = 0; i < 3; i++) {}', 'if (x > 3) { } else { }', 'int add(a, b) => a + b;'],
+};
+let preview, editor, agentEd;
+function updatePreview() {
+  if (!preview) return;
+  const c = blocksCode();
+  preview.setValue(c || `${COMMENT[lang]} Drag blocks in and your ${LANGS[lang]} code appears here.\n`);
+}
+function setLang(l) {
+  lang = l; store.set('lang', l); $('#lang').value = l;
+  $$('.langName').forEach(s => s.textContent = LANGS[l]);
+  $('#cheat').replaceChildren(...['Print', 'Variable', 'Loop', 'If / else', 'Function'].map((n, i) => { const d = el('div'); d.append(el('span', '', n), el('code', '', CHEAT[l][i])); return d; }));
+  if (editor) {
+    monaco.editor.setModelLanguage(preview.getModel(), l);
+    monaco.editor.setModelLanguage(editor.getModel(), l);
+    editor.setValue(store.get('code.' + l, STARTER[l]));
+  }
+  updatePreview();
+}
+$('#lang').onchange = e => setLang(e.target.value);
+const bringBlocks = () => { if (editor) editor.setValue(blocksCode() || STARTER[lang]); view('code'); };
+$('#toCode').onclick = bringBlocks;
+$('#fromBlocks').onclick = bringBlocks;
+$('#runCode').onclick = async () => show($('#out2'), await runCode(editor.getValue(), lang));
+
+const MV = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min';
+window.MonacoEnvironment = { getWorkerUrl: () => 'data:text/javascript;charset=utf-8,' + encodeURIComponent(`self.MonacoEnvironment={baseUrl:'${MV}/'};importScripts('${MV}/vs/base/worker/workerMain.js');`) };
+require.config({ paths: { vs: MV + '/vs' } });
+require(['vs/editor/editor.main'], () => {
+  monaco.editor.defineTheme('bs', { base: 'vs-dark', inherit: true,
+    rules: [{ token: 'comment', foreground: '6b7199', fontStyle: 'italic' }, { token: 'keyword', foreground: 'c4b5fd' }, { token: 'string', foreground: '67e8f9' }, { token: 'number', foreground: 'f9a8d4' }],
+    colors: { 'editor.background': '#00000000', 'editor.lineHighlightBackground': '#ffffff08', 'editorLineNumber.foreground': '#3b4270', 'editorGutter.background': '#00000000', 'editor.selectionBackground': '#7c5cff55' } });
+  const opts = { theme: 'bs', fontFamily: 'JetBrains Mono', fontSize: 14, minimap: { enabled: false }, automaticLayout: true, scrollBeyondLastLine: false, padding: { top: 14 }, smoothScrolling: true, cursorSmoothCaretAnimation: 'on', overviewRulerLanes: 0 };
+  preview = monaco.editor.create($('#preview'), { ...opts, readOnly: true, language: lang, lineNumbers: 'off', renderLineHighlight: 'none', fontSize: 13 });
+  editor = monaco.editor.create($('#editor'), { ...opts, language: lang, value: store.get('code.' + lang, STARTER[lang]) });
+  editor.onDidChangeModelContent(() => store.set('code.' + lang, editor.getValue()));
+  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => $('#runCode').click());
+  agentEd = monaco.editor.create($('#agentCode'), { ...opts, readOnly: true, language: 'python', wordWrap: 'on', lineNumbers: 'off', fontSize: 12.5, renderLineHighlight: 'none' });
+  updatePreview(); renderAgentCode();
+});
+
+// ---------- Agent Lab ----------
+const TRAITS = ['Friendly', 'Concise', 'Funny', 'Patient', 'Socratic', 'Enthusiastic', 'Formal', 'Dramatic'];
+const TEMPLATES = [
+  { label: 'Study Buddy', name: 'Sage', role: 'a study partner who helps high school students understand their homework without doing it for them', traits: ['Friendly', 'Patient', 'Socratic'], rules: ['Never give the final answer, guide with questions', 'End by checking understanding with one quick question'], know: 'The student is learning algebra and beginner Python.', format: 'Short paragraphs, then one question for the student.', ex: 'Good question! What do you think happens to x if we subtract 3 from both sides?' },
+  { label: 'Code Reviewer', name: 'Linty', role: 'a senior engineer who reviews beginner code and explains improvements kindly', traits: ['Concise', 'Patient'], rules: ['Point out at most 3 issues, most important first', 'Explain why, not just what', 'Show a small corrected snippet'], know: 'Reviews code written by students in their first month of programming.', format: 'A numbered list of issues, then a fixed snippet.', ex: '1. Your loop starts at 0 but you wanted 1 to 10, so the total is off. Try range(1, 11).' },
+  { label: 'Personal Assistant', name: 'Sparky', role: 'a personal assistant and chief of staff who keeps its owner organized: tracks tasks, drafts messages, and plans the day', traits: ['Dramatic', 'Funny', 'Concise'], rules: ['Always end with the single most important next step', 'Ask before doing anything that cannot be undone'], know: 'Owner is a college engineering student who codes and 3D prints.', format: 'A one-line summary, then bullet points.', ex: 'Plan for today: finish the physics set, start the print, reply to the group chat. Next step: open the physics set.' },
+  { label: 'Blank', name: '', role: '', traits: [], rules: [], know: '', format: '', ex: '' },
+];
+let agent = store.get('agent', structuredClone(TEMPLATES[0]));
+let chat = [];
+let agentLang = 'python';
+const agentChecks = a => [
+  ['Clear role', a.role.trim().length >= 20, 20, 'Say who the agent is AND who it helps. Vague roles get vague answers.'],
+  ['Personality', a.traits.length > 0, 10, 'Tone shapes how every single answer feels.'],
+  ['Two or more rules', a.rules.length >= 2, 20, 'Rules are guardrails. Say what it must always and never do.'],
+  ['Context', a.know.trim().length >= 15, 15, 'AI only knows what you tell it about your situation.'],
+  ['Answer format', a.format.trim().length >= 8, 15, 'Asking for a format gets consistent, usable output.'],
+  ['An example', a.ex.trim().length >= 20, 20, 'One example teaches more than ten instructions.'],
+];
+const agentScore = () => agentChecks(agent).reduce((s, c) => s + (c[1] ? c[2] : 0), 0);
+function systemPrompt(a) {
+  const p = [`You are ${a.name || 'an AI assistant'}${a.role ? ', ' + a.role : ''}.`];
+  if (a.traits.length) p.push(`Personality: ${a.traits.join(', ').toLowerCase()}.`);
+  if (a.rules.length) p.push('Rules:\n' + a.rules.map(r => '- ' + r).join('\n'));
+  if (a.know.trim()) p.push('Context:\n' + a.know.trim());
+  if (a.format.trim()) p.push('Answer format: ' + a.format.trim());
+  if (a.ex.trim()) p.push('Example of a great answer:\n' + a.ex.trim());
+  return p.join('\n\n');
+}
+function renderAgentCode() {
+  if (!agentEd) return;
+  const sp = systemPrompt(agent), m = store.get('model', 'claude-sonnet-5-5'), who = JSON.stringify((agent.name || 'Agent') + ':');
+  const pyEsc = s => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  const jsEsc = s => s.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
+  const code = agentLang === 'python' ? `# ${agent.name || 'Your agent'}: a real AI agent in ~20 lines of Python
+# pip install anthropic    then set ANTHROPIC_API_KEY
+import anthropic
+
+client = anthropic.Anthropic()
+
+# The system prompt is your agent's brain. You built it on the left.
+SYSTEM = """${pyEsc(sp)}"""
+
+history = []  # memory: every message so far
+while True:
+    history.append({"role": "user", "content": input("You: ")})
+    reply = client.messages.create(
+        model="${m}",
+        max_tokens=1024,
+        system=SYSTEM,
+        messages=history,
+    )
+    text = reply.content[0].text
+    history.append({"role": "assistant", "content": text})
+    print(${who}, text)
+` : `// ${agent.name || 'Your agent'}: a real AI agent in plain JavaScript (Node 18+)
+// npm install @anthropic-ai/sdk    then set ANTHROPIC_API_KEY
+import Anthropic from "@anthropic-ai/sdk";
+import readline from "node:readline/promises";
+
+const client = new Anthropic();
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+
+// The system prompt is your agent's brain. You built it on the left.
+const SYSTEM = \`${jsEsc(sp)}\`;
+
+const history = []; // memory: every message so far
+while (true) {
+  history.push({ role: "user", content: await rl.question("You: ") });
+  const reply = await client.messages.create({
+    model: "${m}",
+    max_tokens: 1024,
+    system: SYSTEM,
+    messages: history,
+  });
+  const text = reply.content[0].text;
+  history.push({ role: "assistant", content: text });
+  console.log(${who}, text);
+}
+`;
+  monaco.editor.setModelLanguage(agentEd.getModel(), agentLang);
+  agentEd.setValue(code);
+}
+$$('#codeSeg button').forEach(x => x.onclick = () => { agentLang = x.dataset.k; $$('#codeSeg button').forEach(y => y.classList.toggle('on', y === x)); renderAgentCode(); });
+
+function agentChanged() {
+  store.set('agent', agent);
+  const s = agentScore();
+  $('#ring').style.setProperty('--p', s);
+  $('#scoreNum').textContent = s;
+  $('#scoreLabel').textContent = s >= 80 ? 'Expert prompt' : s >= 50 ? 'Getting solid' : 'Too vague';
+  $('#checks').replaceChildren(...agentChecks(agent).map(([n, ok, , tip]) => { const li = el('li', ok ? 'ok' : '', n); li.append(el('small', '', tip)); return li; }));
+  $('#aTitle').textContent = agent.name || 'Your agent';
+  $('#aAvatar').textContent = (agent.name || 'A')[0].toUpperCase();
+  $('#aMode').textContent = key() ? 'Live · ' + store.get('model', 'claude-sonnet-5-5') : 'Demo mode · add an AI key for real replies';
+  renderAgentCode();
+}
+function renderTraits() {
+  $('#aTraits').replaceChildren(...TRAITS.map(t => {
+    const x = el('button', 'chip-t' + (agent.traits.includes(t) ? ' on' : ''), t); x.type = 'button';
+    x.onclick = () => { agent.traits = agent.traits.includes(t) ? agent.traits.filter(y => y !== t) : [...agent.traits, t]; renderTraits(); agentChanged(); };
+    return x;
+  }));
+}
+function renderRules() {
+  $('#aRules').replaceChildren(...agent.rules.map((r, i) => {
+    const d = el('div', 'rule', r), x = el('button', 'x', '×'); x.type = 'button';
+    x.onclick = () => { agent.rules.splice(i, 1); renderRules(); agentChanged(); };
+    d.append(x); return d;
+  }));
+}
+const FIELDS = [['aName', 'name'], ['aRole', 'role'], ['aKnow', 'know'], ['aFormat', 'format'], ['aEx', 'ex']];
+FIELDS.forEach(([id, k]) => $('#' + id).oninput = e => { agent[k] = e.target.value; agentChanged(); });
+function renderBuilder() { FIELDS.forEach(([id, k]) => $('#' + id).value = agent[k]); renderTraits(); renderRules(); agentChanged(); }
+$('#ruleForm').onsubmit = e => { e.preventDefault(); const v = $('#ruleIn').value.trim(); if (!v) return; agent.rules.push(v); $('#ruleIn').value = ''; renderRules(); agentChanged(); };
+$('#templates').replaceChildren(...TEMPLATES.map(t => { const x = el('button', 'tpl', t.label); x.type = 'button'; x.onclick = () => { agent = structuredClone(t); renderBuilder(); chat = []; renderMsgs(); }; return x; }));
+
+function renderMsgs(typing) {
+  const m = $('#msgs');
+  m.replaceChildren(...(chat.length ? [] : [el('div', 'empty', `Say hi to ${agent.name || 'your agent'}. Then change a rule and ask the same question again. Watch how the answer changes.`)]),
+    ...chat.map(x => el('div', 'msg ' + (x.role === 'user' ? 'user' : 'ai'), x.content)));
+  if (typing) { const t = el('div', 'msg ai typing'); t.append(el('i'), el('i'), el('i')); m.append(t); }
+  m.scrollTop = m.scrollHeight;
+}
+$('#composer').onsubmit = async e => {
+  e.preventDefault();
+  const text = $('#msgIn').value.trim(); if (!text) return;
+  $('#msgIn').value = '';
+  chat.push({ role: 'user', content: text }); renderMsgs(true);
+  try {
+    let reply;
+    if (key()) reply = await claude(systemPrompt(agent), chat);
+    else { await sleep(900); reply = demoReply(text); }
+    chat.push({ role: 'assistant', content: reply });
+  } catch (err) { chat.pop(); toast('AI error: ' + err.message, 'warn'); }
+  renderMsgs();
+};
+// No key: show how the prompt shapes the answer, using the agent's own example as its voice.
+function demoReply(text) {
+  const a = agent, n = a.name || 'your agent';
+  if (a.ex.trim()) return `${a.ex.trim()}\n\n(Demo mode: that's the example answer you taught ${n}. With an AI key, ${n} writes a brand new one for "${text}" in the same style.)`;
+  const missing = agentChecks(a).filter(c => !c[1]).map(c => c[0].toLowerCase());
+  return `Hi, I'm ${n}. Right now I'd answer "${text}" pretty generically, because I don't have ${missing.slice(0, 2).join(' or ') || 'much to go on'} yet.\n\n(Demo mode: fill in the builder on the left and watch me change.)`;
+}
+$('#resetChat').onclick = () => { chat = []; renderMsgs(); };
+
+// ---------- settings ----------
+const dlg = $('#settings');
+$('#settingsBtn').onclick = () => { $('#keyIn').value = key(); $('#modelIn').value = store.get('model', 'claude-sonnet-5-5'); dlg.showModal(); };
+dlg.onclose = () => {
+  if (dlg.returnValue !== 'ok') return;
+  store.set('key', $('#keyIn').value.trim()); store.set('model', $('#modelIn').value);
+  agentChanged(); toast(key() ? 'AI connected. Your agents are live.' : 'Back to demo mode.');
+};
+
+// ---------- boot ----------
+setLang(lang); renderBuilder(); renderMsgs(); loadLesson(cur);
+</script>
+</body>
+</html>
