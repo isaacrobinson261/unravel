@@ -1,0 +1,6 @@
+{
+  "name": "unravel",
+  "version": "1.0.0",
+  "description": "Reverse-engineer how a codebase works: entry points, architecture, data flow, API routes, config, and risks, written up as a BLUEPRINT.md.",
+  "author": { "name": "Isaac Robinson" }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "unravel",
+  "owner": { "name": "Isaac Robinson" },
+  "plugins": [
+    {
+      "name": "unravel",
+      "source": "./",
+      "description": "Reverse-engineer how a codebase works and write a BLUEPRINT.md."
+    }
+  ]
+}
