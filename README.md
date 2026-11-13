@@ -35,7 +35,7 @@ Understands JavaScript, TypeScript, Python, HTML, and CSS imports, and counts mo
 ## The Claude Code add-on
 
 ```
-/plugin marketplace add isaacrobinson261/unravel
+/plugin marketplace add BigRob267/unravel
 /plugin install unravel@unravel
 ```
 
